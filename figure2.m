@@ -28,7 +28,7 @@ Mrange=420:60:720;
 
 for s = 1:numSetups
     
-        M=720;
+        M=768;
         Ms=M/S;
     %Generate mobile communication setup
     [channelGaindB,R] = functionExampleSetup(M,S,K,diagNorm);
@@ -63,15 +63,15 @@ for s = 1:numSetups
 end
 
 figure
-plot(snr,mean(sumSINR1,2)/3,'r--','LineWidth',2);
+plot(snr,mean(sumSINR1,2)/3,'r->','LineWidth',2);
 hold on
-plot(snr,mean(sumSINR2,2)/3,'bo','LineWidth',1);
-plot(snr,mean(sumSINR3,2)/3,'k-','LineWidth',2);
-plot(snr,mean(sumSINR4,2)/3,'c->','LineWidth',2);
-plot(snr,mean(sumSINR5,2)/3,'m-.','LineWidth',2);
+plot(snr,mean(sumSINR2,2)/3,'b-o','LineWidth',2);
+plot(snr,mean(sumSINR3,2)/3,'b-','LineWidth',2);
+plot(snr,mean(sumSINR4,2)/3,'k-.','LineWidth',2);
+plot(snr,mean(sumSINR5,2)/3,'k-*','LineWidth',2);
 set(gca,'xLim',[15,30]);
 xlabel('SNR (dB)','Interpreter','latex')
 ylabel('Average sum SE of each subarray (bps/Hz/subarray)','Interpreter','latex')
 set(gca, 'Fontname', 'Times New Roman','FontSize',12);
-legend('RZF','CG','PCG','GS','JOR','Location','best')
+legend('RZF','CG (Non-stationary method)','SSOR-PCG (Non-stationary method)','GS (Stationary method)','JOR (Stationary method)','latex');
 grid on

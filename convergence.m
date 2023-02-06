@@ -1,69 +1,3 @@
-clc
-clear
-%% 报错检验
-
-% %当矩阵A奇异时迭代产生错误（这里只以Jacobi迭代为例）
-% A = [1 1 ; 2 2];
-% b = [1 1]';
-% x0 = [1 1]';
-% jacobi(A,b,x0)
-% 
-% %当不能通过行交换使对角线上元素都变成非零时，产生错误。
-% A = [1 1 1;
-%      1 1 0;
-%      0 1 0];
-% b = [1 1 1]';
-% x0 = [1 1 1]';
-% jacobi(A,b,x0)
-% 
-% %当迭代不收敛时，该迭代方法失效
-% A = [1 2 ; 3 4];
-% b = [1 1]';
-% x0 = [1 1]';
-% jacobi(A,b,x0)
-
-%% 造一个次序相容的A，且满足Jacobi迭代矩阵J的特征值都为实数，J谱半径小于1.
-%在这样的条件下，我们看看SOR方法最佳松弛因子实验值与理论值是否相符。
-% 实验中，可以控制相同步数，选精度最高因子，也可以选定精度，看那个因子对应迭代
-%的步数最少。实验选到的最优因子和理论最优因子有一定差距，原因在于：1、所采用的精度
-%标准，并非真正的精度，这里的精度和解的逼近只有一个粗糙关系。2、不同因子对应的迭代
-%步数可能会相同，相同步数对应的精度也有可能对相同。
-clc
-clear
-A = [-3 1 0 1;1 -3 0 0; 0 0 -3 1; 1 0 1 -3];%A次序相容
-n = size(A,2);
-b = ones(n,1);
-x0 = ones(n,1);
-
-D = diag(diag(A));
-J = eye(n) - D^-1*A;
-if isreal(eig(J)) && (max(abs(eig(J))) < 1)
-sep = 0:0.001:2;
-w0 = sep(2:end-1);
-m = size(w0,2);
-Ts = zeros(1,m);
-step_sets = zeros(1,m);
-h = 0;
-for w = w0 %采用不同因子用迭代法尝试，在相同迭代步数下选取精度最高。
-[~,out] = SOR(A,b,x0,w,1.0e-4,15);
-h = h+1;
-Ts(h) = out;
-[~,out] = SOR(A,b,x0,w,1.0e-4);
-step_sets(h) = out;
-end
-inds = find(Ts==min(Ts));
-ind = round((max(inds) + min(inds))/2);
-%当多个精度相同时，取中间一个。
-wb = w0(ind);%w 均匀分割迭代产生的最优松弛因子
-wb0 = 2/( 1+sqrt( 1-max(abs(eig(J)))^2 ) );% 理论最优松弛因子
-wb_error = wb - wb0;%理论与实际差距
-[~,ind1]=min(abs(w0 - wb0));%最接近理论最优因子的实验因子的位置
-step_error = ind - ind1;%位置步数差距
-p = 500;
-plot(w0(ind1-p:ind1+p),step_sets(ind1-p:ind1+p),'-mo',...
-                'MarkerSize',3)%绘图直观
-            title('同精度所需迭代步数随松弛因子变化图')
-end
 
 
 %% 我们来比较Jacobi迭代、Gauss_Seidel迭代和最优因子SOR迭代的速度。由于三
@@ -131,7 +65,7 @@ Xs_C(:,end+1) = x_C;
 [x_C1] = CG1(A,b,x0,iterNum,'');
 %Ts_C(end+1) = out_C;
 Xs_C1(:,end+1) = x_C1;
-[x_J,~]=JOR(A,b,x0,iterNum,0.5);
+[x_J,~]=JOR(A,b,x0,iterNum,'',0.5);
 Xs_J(:,end+1) = x_J;
 
 end
@@ -147,19 +81,21 @@ error_J(k)= norm((Xs_J(:,k) - true_x), 2);
 figure;
 end
 error_m = norm(A\b - true_x);
-
-plot(iterNums,error_J,'m-.','LineWidth',2)
+plot(iterNums,error_C,'b-o','LineWidth',2)
  hold on
-plot(iterNums,error_G,'c->','LineWidth',2)
+plot(iterNums,error_C1,'b-','LineWidth',2)
+
+
+plot(iterNums,error_G,'k-.','LineWidth',2)
+plot(iterNums,error_J,'k-*','LineWidth',2)
 %plot(iterNums,error_S,'b-.^','LineWidth',2)
 %plot(iterNums,error_m,'b--o','LineWidth',2)
-plot(iterNums,error_C,'bo','LineWidth',1)
-plot(iterNums,error_C1,'k-','LineWidth',2)
+
 grid on
-legend('JOR','GS','CG','PCG');
+legend('CG','Jac-PCG','GS','JOR','latex');
 set(gca, 'Fontname', 'Times New Roman','FontSize',12);
-xlabel('iteration','Interpreter','latex')
-ylabel('Least square error','Interpreter','latex')
+xlabel('Number of iterations (T)','Interpreter','latex')
+ylabel('Least square error $\left \| {\bf x}-\hat{{\bf x}}  \right \|_{2} $','Interpreter','latex')
 set(gca,'xLim',[1,6]);
 %由于收敛速度都是呈高数量级的且不同方法收敛速度的巨大差异（特别是Jacobi迭代在图上
 %降低了分辨率），所以我们很难从图上直观看出我们这三种方法随着迭代的进行，细致

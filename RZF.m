@@ -64,7 +64,7 @@ for n = 1:numRealizations
 
      for k1 = 1:K
         signal1 = abs(Hn3(k1,:)*V_RZF3(:,k1)).^2;
-        signal2 = abs(Hn2(k1+16,:)*V_RZF2(:,k1+16)).^2;
+        signal2 = abs(Hn2(k1+8,:)*V_RZF2(:,k1+8)).^2;
         %combiningNorm1 = norm(V_RZF1).^2+norm(V_RZF2).^2;
         interf1=0;
         interf2=0;
